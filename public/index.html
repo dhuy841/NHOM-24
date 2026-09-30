@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý CLB Sinh Viên</title>
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f8fafc;
+            --sidebar-bg: #0f172a;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        .hidden { display: none !important; }
+
+        /* AUTH CARD */
+        .auth-wrapper {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        }
+        .auth-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            padding: 24px 16px;
+            z-index: 1000;
+        }
+        .sidebar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            padding: 0 12px 24px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            border-radius: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-bottom: 6px;
+        }
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 260px;
+            padding: 32px;
+        }
+
+        /* CARDS & STATS */
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        /* CUSTOM TABLE */
+        .custom-table {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+        .table { margin-bottom: 0; }
+        .table th {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 16px;
+            border: none;
+        }
+        .table td { padding: 16px; vertical-align: middle; border-color: #f1f5f9; }
+
+        /* CHATBOX */
+        .chat-container {
+            height: 420px;
+            overflow-y: auto;
+            border-radius: 16px;
+            background: #f8fafc;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .chat-bubble {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .chat-user {
+            background: var(--primary);
+            color: #fff;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-ai {
+            background: #ffffff;
+            color: var(--text-main);
+            border: 1px solid #e2e8f0;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- GIAO DIỆN ĐĂNG NHẬP (HERO DESIGN) -->
+    <div id="login-section" class="auth-wrapper d-flex align-items-center justify-content-center p-3">
+        <div class="card auth-card p-4 p-md-5 text-white" style="width: 100%; max-width: 420px;">
+            <div class="text-center mb-4">
+                <div class="icon-box bg-primary text-white mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-users-gear"></i>
+                </div>
+                <h3 class="fw-bold">Club Manager AI</h3>
+                <p class="text-secondary small">Quản lý CLB Sinh viên Thông minh</p>
+            </div>
+            <div id="login-alert" class="alert alert-danger hidden rounded-3 small"></div>
+            <div class="mb-3">
+                <label class="form-label small text-secondary">Tài khoản</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-user"></i></span>
+                    <input type="text" id="username" class="form-control bg-dark text-white border-secondary" placeholder="Tên đăng nhập">
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label small text-secondary">Mật khẩu</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" id="password" class="form-control bg-dark text-white border-secondary" placeholder="••••••••">
+                </div>
+            </div>
+            <button onclick="handleLogin()" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold">
+                Đăng Nhập <i class="fa-solid fa-arrow-right ms-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- GIAO DIỆN DASHBOARD CHÍNH -->
+    <div id="app-section" class="hidden">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar">
+            <div class="sidebar-brand d-flex align-items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-primary fs-4"></i>
+                <span>STUDENT CLUB</span>
+            </div>
+            <nav class="mt-4">
+                <a href="#" onclick="showPage('members')" id="nav-members" class="nav-link-custom active">
+                    <i class="fa-solid fa-users"></i> Thành Viên
+                </a>
+                <a href="#" onclick="showPage('ai-plan')" id="nav-ai-plan" class="nav-link-custom">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI Lập Sự Kiện
+                </a>
+                <a href="#" onclick="showPage('ai-chat')" id="nav-ai-chat" class="nav-link-custom">
+                    <i class="fa-solid fa-comments"></i> Trợ Lý Chatbot
+                </a>
+            </nav>
+            <div class="position-absolute bottom-0 start-0 w-100 p-3">
+                <button onclick="handleLogout()" class="btn btn-outline-danger w-100 rounded-3 text-start ps-3">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <!-- PAGE: MEMBERS -->
+            <div id="page-members">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-1">Quản Lý Thành Viên</h4>
+                        <p class="text-muted small mb-0">Danh sách tất cả các thành viên đang hoạt động trong CLB</p>
+                    </div>
+                    <button class="btn btn-primary rounded-3 px-3" onclick="loadMembers()">
+                        <i class="fa-solid fa-rotate-right me-2"></i>Làm mới
+                    </button>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card d-flex align-items-center gap-3">
+                            <div class="icon-box bg-primary-subtle text-primary"><i class="fa-solid fa-user-group"></i></div>
+                            <div>
+                                <div class="text-muted small">Tổng số thành viên</div>
+                                <h4 class="fw-bold mb-0" id="stat-total">3</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card d-flex align-items-center gap-3">
+                            <div class="icon-box bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
+                            <div>
+                                <div class="text-muted small">Đang hoạt động</div>
+                                <h4 class="fw-bold mb-0">2</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card d-flex align-items-center gap-3">
+                            <div class="icon-box bg-warning-subtle text-warning"><i class="fa-solid fa-brain"></i></div>
+                            <div>
+                                <div class="text-muted small">Tích hợp AI</div>
+                                <h4 class="fw-bold mb-0">Gemini 1.5</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã Sinh Viên</th>
+                                <th>Họ và Tên</th>
+                                <th>Ban Chuyên Môn</th>
+                                <th>Chức Vụ</th>
+                                <th>Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="member-list">
+                            <!-- Dữ liệu render tại đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: AI EVENT PLANNER -->
+            <div id="page-ai-plan" class="hidden">
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-1">AI Lập Kế Hoạch Sự Kiện</h4>
+                    <p class="text-muted small mb-0">Tự động đề xuất kịch bản, dự toán ngân sách & timeline chi tiết</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="stat-card">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tên sự kiện</label>
+                                <input type="text" id="event-title" class="form-control rounded-3" placeholder="VD: Welcome Gen Z - CLB IT 2026">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Dự toán ngân sách (VNĐ)</label>
+                                <input type="number" id="event-budget" class="form-control rounded-3" placeholder="VD: 10000000">
+                            </div>
+                            <button onclick="generatePlan()" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold">
+                                <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Tạo kế hoạch tự động
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="stat-card min-vh-50">
+                            <h6 class="fw-bold border-bottom pb-3 mb-3"><i class="fa-solid fa-file-contract me-2 text-primary"></i>Kết quả phân tích từ AI</h6>
+                            <div id="plan-result" class="text-muted small">
+                                <i>Chưa có dữ liệu. Vui lòng nhập thông tin bên trái và bấm "Tạo kế hoạch".</i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: AI CHATBOT -->
+            <div id="page-ai-chat" class="hidden">
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-1">Trợ Lý AI CLB</h4>
+                    <p class="text-muted small mb-0">Hỏi đáp trực tiếp về quy chế, ý tưởng truyền thông & sinh hoạt</p>
+                </div>
+
+                <div class="stat-card col-lg-8 mx-auto">
+                    <div id="chat-box" class="chat-container mb-3 d-flex flex-column">
+                        <div class="chat-bubble chat-ai">
+                            Xin chào! Tôi là Trợ lý AI của CLB. Tôi có thể giúp gì cho bạn hôm nay?
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="chat-input" class="form-control rounded-start-3" placeholder="Gửi câu hỏi cho AI..." onkeypress="if(event.key==='Enter') sendChat()">
+                        <button onclick="sendChat()" class="btn btn-primary rounded-end-3 px-4">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+
+        async function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const alertBox = document.getElementById('login-alert');
+
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('app-section').classList.remove('hidden');
+                    loadMembers();
+                } else {
+                    alertBox.textContent = data.error || 'Đăng nhập thất bại';
+                    alertBox.classList.remove('hidden');
+                }
+            } catch (err) {
+                alertBox.textContent = 'Không thể kết nối đến máy chủ';
+                alertBox.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            location.reload();
+        }
+
+        function showPage(page) {
+            ['members', 'ai-plan', 'ai-chat'].forEach(p => {
+                document.getElementById(`page-${p}`).classList.add('hidden');
+                document.getElementById(`nav-${p}`).classList.remove('active');
+            });
+            document.getElementById(`page-${page}`).classList.remove('hidden');
+            document.getElementById(`nav-${page}`).classList.add('active');
+        }
+
+        async function loadMembers() {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/members`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const members = await res.json();
+            
+            document.getElementById('stat-total').textContent = members.length;
+            const tbody = document.getElementById('member-list');
+            tbody.innerHTML = members.map(m => `
+                <tr>
+                    <td class="fw-semibold text-primary">${m.code}</td>
+                    <td class="fw-bold">${m.name}</td>
+                    <td><span class="badge bg-light text-dark border">${m.department}</span></td>
+                    <td>${m.role}</td>
+                    <td><span class="badge bg-success-subtle text-success border border-success-subtle">${m.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        async function generatePlan() {
+            const title = document.getElementById('event-title').value;
+            const budget = document.getElementById('event-budget').value;
+            const token = localStorage.getItem('token');
+            const resultDiv = document.getElementById('plan-result');
+
+            if(!title) return alert('Vui lòng nhập tên sự kiện');
+
+            resultDiv.innerHTML = '<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin fs-3 text-primary mb-2"></i><br>AI đang tổng hợp dữ liệu...</div>';
+
+            const res = await fetch(`${API_URL}/ai/plan-event`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title, budget })
+            });
+            const data = await res.json();
+            resultDiv.innerHTML = `<div style="white-space: pre-line;" class="text-dark">${data.plan || data.error}</div>`;
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chat-input');
+            const chatBox = document.getElementById('chat-box');
+            const token = localStorage.getItem('token');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            chatBox.innerHTML += `<div class="chat-bubble chat-user">${msg}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const res = await fetch(`${API_URL}/api/ai/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ message: msg })
+            });
+            const data = await res.json();
+            chatBox.innerHTML += `<div class="chat-bubble chat-ai">${data.reply || data.error}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
